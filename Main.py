@@ -16,20 +16,100 @@ biglietti = db['Biglietti']
 collection.create_index([("coordinate", "2dsphere")])
 
 def login():
-    
+    while True:
+        choice = input("Seleziona un'opzione:\n1. Registrati\n2. Accedi\n")
+
+        if choice == '1':
+            name = input('Inserisci il tuo nome: ')
+            surname = input('Inserisci il tuo cognome: ')
+            username = input('Inserisci il tuo username: ')
+            password = input('Inserisci la tua password: ')
+            user = {
+                'name': name,
+                'surname': surname,
+                'username': username,
+                'password': password
+            }
+            biglietti.insert_one(user)
+            print('Utente registrato con successo.')
+
+        elif choice == '2':
+            username = input('Inserisci il tuo username: ')
+            password = input('Inserisci la tua password: ')
+            user = biglietti.find_one({'username': username, 'password': password})
+            if user:
+                print('Accesso consentito. Benvenuto, {}!'.format(user['name']))
+                break
+            else:
+                print('Credenziali non valide. Riprova.')
+        else:
+            print('Opzione non valida. Riprova.')
     return username
 
 def scelta(risultati):
+    # Lista per i dati dei concerti
+    concerti = []
+    counter = 1
+    # Stampa i risultati
+    for concerto in risultati:
+        disponibilita = concerto['disponibilita']
+        if disponibilita == '0':
+            disponibilita = 'sold-out'
+        else:
+            disponibilita = f"disp:{disponibilita}"
+
+        nome = concerto['nome']
+        data = concerto['data']
+        costo = concerto['costo']
+        artista = concerto['artista']
+        
+        # Aggiungi i dati del concerto alla lista
+        concerto_data = [nome, data, disponibilita, costo, artista]
+        concerti.append(concerto_data)
+
+        print(f"{counter}: {concerto_data}")
+        counter += 1
+
+    if len(concerti) == 0:
+        print("Nessun concerto trovato.")
+        return None
+    # Chiedi all'utente di scegliere un concerto
+    scelta = int(input("Inserisci il numero del concerto che vuoi selezionare: "))
+    # Restituisci il concerto scelto
+    
+
+    # l'utente può decidere di non selezionare nessun concerto
+    if scelta == 0:
+        print("Nessun concerto selezionato.")
+        return None
+    else:
+        scelta = concerti[scelta - 1]
+    
     return scelta
 
 def ricerca_artista():
+    # Query di ricerca
+    artista = input("Inserisci il nome dell'artista: ")
+    # Query di ricerca
+    query = {"artista": {"$regex": artista, "$options": "i"}}
+
+    # Esegui la query con collation case-insensitive
+    risultati = collection.find(query, collation=Collation(locale='en', strength=2))
+    
     concerto_scelto = scelta(risultati)
     
     return concerto_scelto
 
 def ricerca_data():
+    # Query di ricerca
+    artista = input("Inserisci la data del concerto (formato yyyy-mm-gg): ")
+    # Query di ricerca
+    query = {"data": {"$regex": artista, "$options": "i"}}
+
+    # Esegui la query con collation case-insensitive
+    risultati = collection.find(query, collation=Collation(locale='en', strength=2))
     
-   concerto_scelto = scelta(risultati)
+    concerto_scelto = scelta(risultati)
     
     return concerto_scelto
 
@@ -45,14 +125,61 @@ def ricerca_nome():
     return concerto_scelto
 
 def ricerca_vicinanza():
-
+    geolocator = Nominatim(user_agent="concerti.py")
+    luogo = input("Inserisci il luogo in cui vuoi cercare il concerto: ")
+    location = geolocator.geocode(luogo)
+    coordinate_citta = location.latitude, location.longitude
+    if coordinate_citta is None:
+        print("Impossibile trovare le coordinate della città.")
+        return None
+    else:
+        print(f"Le coordinate della città sono {coordinate_citta}")
+    raggio = int(input("Inserisci il raggio di ricerca in km: "))
+    raggio = raggio * 1000
+    query = {
+        "coordinate": {
+            "$near": {
+                "$geometry": {
+                    "type": "Point",
+                    "coordinates": [location.latitude, location.longitude]
+                },
+                "$maxDistance": raggio
+            }
+        }
+    }
+    risultati = collection.find(query, collation=Collation(locale='en', strength=2))
     concerto_scelto = scelta(risultati)
     return concerto_scelto
 
 def acquisto(concerti, username):
-    return None
+    print('Vuoi procedere con l\'acquisto?')
+    acquisto = input('s/n ')
+    if acquisto == 's':
         
-
+        #l'utente può decidere quanti posti acquistare per ogni concerto
+        for concerto in concerti:
+            print(f'Quanti posti vuoi acquistare per {concerto[0]}?')
+            posti = int(input('Inserisci il numero di posti: '))
+            concerto.append(posti)
+            
+        print('Il costo totale è: ')
+        costo_totale = 0
+        for concerto in concerti:
+            costo_totale += concerto[3] * concerto[5]
+        print(costo_totale)
+        print('Acquisto effettuato e disponibilità aggiornata')
+        # Update the document
+        biglietti.update_one(
+            {"username": username},
+            {"$set": {"concerti": concerti}},
+            upsert=True
+        )
+        for concerto in concerti:
+            # modifica della disponibilità dei posti                
+            collection.update_one({'nome': concerto[0]}, {'$inc': {'disponibilita': - concerto[5]}})
+    else:
+        print('acquisto annullato')
+        
 
 def main():
     
