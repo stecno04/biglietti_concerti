@@ -29,7 +29,7 @@ def ricerca_artista():
 
 def ricerca_data():
     
-   concerto_scelto = scelta(risultati)
+    concerto_scelto = scelta(risultati)
     
     return concerto_scelto
 
@@ -40,7 +40,29 @@ def ricerca_nome():
     return concerto_scelto
 
 def ricerca_vicinanza():
-
+    geolocator = Nominatim(user_agent="concerti.py")
+    luogo = input("Inserisci il luogo in cui vuoi cercare il concerto: ")
+    location = geolocator.geocode(luogo)
+    coordinate_citta = location.latitude, location.longitude
+    if coordinate_citta is None:
+        print("Impossibile trovare le coordinate della città.")
+        return None
+    else:
+        print(f"Le coordinate della città sono {coordinate_citta}")
+    raggio = int(input("Inserisci il raggio di ricerca in km: "))
+    raggio = raggio * 1000
+    query = {
+        "coordinate": {
+            "$near": {
+                "$geometry": {
+                    "type": "Point",
+                    "coordinates": [location.latitude, location.longitude]
+                },
+                "$maxDistance": raggio
+            }
+        }
+    }
+    risultati = collection.find(query, collation=Collation(locale='en', strength=2))
     concerto_scelto = scelta(risultati)
     return concerto_scelto
 
