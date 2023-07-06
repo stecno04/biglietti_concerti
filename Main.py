@@ -28,8 +28,15 @@ def ricerca_artista():
     return concerto_scelto
 
 def ricerca_data():
+    # Query di ricerca
+    artista = input("Inserisci la data del concerto (formato yyyy-mm-gg): ")
+    # Query di ricerca
+    query = {"data": {"$regex": artista, "$options": "i"}}
+
+    # Esegui la query con collation case-insensitive
+    risultati = collection.find(query, collation=Collation(locale='en', strength=2))
     
-   concerto_scelto = scelta(risultati)
+    concerto_scelto = scelta(risultati)
     
     return concerto_scelto
 
