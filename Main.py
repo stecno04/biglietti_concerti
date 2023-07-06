@@ -45,9 +45,34 @@ def ricerca_vicinanza():
     return concerto_scelto
 
 def acquisto(concerti, username):
-    return None
+    print('Vuoi procedere con l\'acquisto?')
+    acquisto = input('s/n ')
+    if acquisto == 's':
         
-
+        #l'utente può decidere quanti posti acquistare per ogni concerto
+        for concerto in concerti:
+            print(f'Quanti posti vuoi acquistare per {concerto[0]}?')
+            posti = int(input('Inserisci il numero di posti: '))
+            concerto.append(posti)
+            
+        print('Il costo totale è: ')
+        costo_totale = 0
+        for concerto in concerti:
+            costo_totale += concerto[3] * concerto[5]
+        print(costo_totale)
+        print('Acquisto effettuato e disponibilità aggiornata')
+        # Update the document
+        biglietti.update_one(
+            {"username": username},
+            {"$set": {"concerti": concerti}},
+            upsert=True
+        )
+        for concerto in concerti:
+            # modifica della disponibilità dei posti                
+            collection.update_one({'nome': concerto[0]}, {'$inc': {'disponibilita': - concerto[5]}})
+    else:
+        print('acquisto annullato')
+        
 
 def main():
     
