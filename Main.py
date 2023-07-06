@@ -20,6 +20,44 @@ def login():
     return username
 
 def scelta(risultati):
+    # Lista per i dati dei concerti
+    concerti = []
+    counter = 1
+    # Stampa i risultati
+    for concerto in risultati:
+        disponibilita = concerto['disponibilita']
+        if disponibilita == '0':
+            disponibilita = 'sold-out'
+        else:
+            disponibilita = f"disp:{disponibilita}"
+
+        nome = concerto['nome']
+        data = concerto['data']
+        costo = concerto['costo']
+        artista = concerto['artista']
+        
+        # Aggiungi i dati del concerto alla lista
+        concerto_data = [nome, data, disponibilita, costo, artista]
+        concerti.append(concerto_data)
+
+        print(f"{counter}: {concerto_data}")
+        counter += 1
+
+    if len(concerti) == 0:
+        print("Nessun concerto trovato.")
+        return None
+    # Chiedi all'utente di scegliere un concerto
+    scelta = int(input("Inserisci il numero del concerto che vuoi selezionare: "))
+    # Restituisci il concerto scelto
+    
+
+    # l'utente può decidere di non selezionare nessun concerto
+    if scelta == 0:
+        print("Nessun concerto selezionato.")
+        return None
+    else:
+        scelta = concerti[scelta - 1]
+    
     return scelta
 
 def ricerca_artista():
