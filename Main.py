@@ -16,7 +16,34 @@ biglietti = db['Biglietti']
 collection.create_index([("coordinate", "2dsphere")])
 
 def login():
-    
+    while True:
+        choice = input("Seleziona un'opzione:\n1. Registrati\n2. Accedi\n")
+
+        if choice == '1':
+            name = input('Inserisci il tuo nome: ')
+            surname = input('Inserisci il tuo cognome: ')
+            username = input('Inserisci il tuo username: ')
+            password = input('Inserisci la tua password: ')
+            user = {
+                'name': name,
+                'surname': surname,
+                'username': username,
+                'password': password
+            }
+            biglietti.insert_one(user)
+            print('Utente registrato con successo.')
+
+        elif choice == '2':
+            username = input('Inserisci il tuo username: ')
+            password = input('Inserisci la tua password: ')
+            user = biglietti.find_one({'username': username, 'password': password})
+            if user:
+                print('Accesso consentito. Benvenuto, {}!'.format(user['name']))
+                break
+            else:
+                print('Credenziali non valide. Riprova.')
+        else:
+            print('Opzione non valida. Riprova.')
     return username
 
 def scelta(risultati):
