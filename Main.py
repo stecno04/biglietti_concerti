@@ -1,6 +1,9 @@
 from pymongo import MongoClient
+from pymongo.collation import Collation
+from geopy.geocoders import Nominatim
 
-# Gestione concerti
+
+#gestione concerti
 concerti_selezionati = []
 
 client = MongoClient('mongodb+srv://user2:ciao@cluster0.7l0lshi.mongodb.net/')
@@ -10,34 +13,52 @@ biglietti = db['Biglietti']
 
 
 
+collection.create_index([("coordinate", "2dsphere")])
+
+def login():
+    
+    return username
+
 def scelta(risultati):
-    # funzione che restituisce il concerto scelto dall'utente
-    return concerto_scelto
+    return scelta
 
 def ricerca_artista():
-    # ricerca per artista restituire il concerto scelto
+    concerto_scelto = scelta(risultati)
+    
     return concerto_scelto
 
 def ricerca_data():
-    # ricerca per data restituire il concerto scelto
+    
+   concerto_scelto = scelta(risultati)
+    
+    return concerto_scelto
+
+def ricerca_nome():
+    
+    concerto_scelto = scelta(risultati)
+    
     return concerto_scelto
 
 def ricerca_vicinanza():
-    # ricerca per vicinanza restituire il concerto scelto
+
+    concerto_scelto = scelta(risultati)
     return concerto_scelto
 
-def acquisto(concerti):
-    # acquisto dei biglietti e insert del biglietto nella collection Biglietti
-    return
+def acquisto(concerti, username):
+    return None
+        
 
 
 def main():
+    
+    username = login()
     while True:
         print("Gestione concerti")
-        print("1. Inserisci uno per cercare per artista")
-        print("2. Inserisci due per cercare per data")
-        print("3. Inserisci tre per cercare per vicinanza")
-        print("4. Inserisci quattro per uscire")
+        print("Inserisci 1 per cercare per artista")
+        print("Inserisci 2 per cercare per data")
+        print("Inserisci 3 per cercare per vicinanza")
+        print("Inserisci 4 per cercare per nome del concerto")
+        print("Inserisci 5 per vedere i concerti già precedentemente acquistati")
         selezione = input("Inserisci la tua scelta: ")
         # ognuna di queste funzioni restituisce al massimo un concerto
         if selezione == '1':
@@ -52,10 +73,14 @@ def main():
             result = ricerca_vicinanza()
             if result is not None:
                 concerti_selezionati.append(result)
+        elif selezione == '5':
+            print("I concerti che hai già acquistato sono:")
+            for biglietto in biglietti.find({'username': username}, {'_id': 0, 'concerti': 1}):
+                print(biglietto)
         elif selezione == '4':
-            break
-        else:
-            print("Scelta non valida")
+            result = ricerca_nome()
+            if result is not None:
+                concerti_selezionati.append(result)
         
         if len(concerti_selezionati) > 0:
             print("I concerti selezionati sono:")
@@ -63,9 +88,10 @@ def main():
                 print(concerto)
             altri_o_no = input("Vuoi aggiungere altri concerti? (s/n) ")
             if altri_o_no == "n":
-                acquisto(concerti_selezionati)
+                acquisto(concerti_selezionati, username)
                 break
             elif altri_o_no == "s": 
                 continue
+
 
 main()
