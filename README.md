@@ -31,4 +31,4 @@ Sostituire <username>, <password> e <cluster-url> con le proprie informazioni di
 
 5. Selezionare i concerti desiderati e procedere con l'acquisto.
 
-6. I concerti acquistati e le relative disponibilità verranno aggiornati nel database.
+6. I concerti acquistati e le relative disponibilità verranno aggiornati nel database.  
